@@ -27,7 +27,7 @@ python3 skills/audio-mixing/scripts/mix_audio.py --workspace ./workspace
 4. Loops music to match speech duration, lowers volume to -18dB.
 5. Overlays speech on music with a 1-second music intro.
 6. Adds fade-in/fade-out.
-7. Exports as WAV and MP3.
+7. Exports as MP3.
 
 ### Dependencies
 
@@ -52,7 +52,6 @@ python3 skills/audio-mixing/scripts/mix_audio.py --workspace ./workspace
 
 | File | Path | Format |
 |------|------|--------|
-| WAV (lossless) | `{workspace}/audio/final/ai_radio.wav` | WAV, 24kHz, 16-bit |
 | MP3 (distribution) | `{workspace}/audio/final/ai_radio.mp3` | MP3, 192kbps |
 
 ## Fallback

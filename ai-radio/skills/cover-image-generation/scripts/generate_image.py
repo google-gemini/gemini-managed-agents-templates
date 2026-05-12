@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Generate cover image for AI Radio using Gemini 3 Pro Image (Nano Banana Pro).
+"""Generate cover image for AI Talk Radio using Gemini 3 Pro Image (Nano Banana Pro).
 
 Usage:
     python3 generate_image.py --workspace ./workspace --prompt "Futuristic radio station"
 
 Requires:
     pip install google-genai
-    GEMINI_API_KEY environment variable
 """
 
 import argparse
@@ -22,7 +21,7 @@ import random
 # Suppress experimental warnings from SDK
 warnings.filterwarnings("ignore", message="Interactions usage is experimental")
 
-BASE_PROMPT = "A professional podcast cover image for a show titled '{title}' on the 'AI Radio' station. The design features the text '{title}' in a bold, stylish font"
+BASE_PROMPT = "A professional podcast cover image for a show titled '{title}' on the 'AI Talk Radio' station. The design features the text '{title}' in a bold, stylish font"
 
 PROMPT_STYLES = [
     " centered on the cover. The background is a vibrant purple with a textured water ripple effect that covers the entire frame, creating a dynamic and clean aesthetic.",
@@ -44,7 +43,6 @@ def generate_image(prompt, output_path, reference=None, aspect_ratio="1:1"):
     client = genai.Client()
 
     print(f"Generating image with prompt: '{prompt}'")
-    print("Using model: gemini-3-pro-image-preview")
 
     input_content = [{"type": "text", "text": prompt}]
     if reference and os.path.exists(reference):
@@ -56,33 +54,51 @@ def generate_image(prompt, output_path, reference=None, aspect_ratio="1:1"):
         })
         print(f"Uploaded as {ref_file.name}")
 
-    try:
-        interaction = client.interactions.create(
-            model="gemini-3-pro-image-preview",
-            input=input_content,
-            response_modalities=["image"],
-            generation_config={
-                "image_config": {
+    models_to_try = [
+        "gemini-3.1-flash-image-preview",
+        "gemini-3-pro-image-preview"
+    ]
+
+    for model_name in models_to_try:
+        print(f"Trying model: {model_name}")
+        try:
+            interaction = client.interactions.create(
+                model=model_name,
+                input=input_content,
+                response_format={
+                    "type": "image",
                     "aspect_ratio": aspect_ratio
                 }
-            }
-        )
+            )
 
-        for output in interaction.outputs:
-            if output.type == "image":
-                image_data = base64.b64decode(output.data)
-                os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                with open(output_path, "wb") as f:
-                    f.write(image_data)
-                print(f"✅ Image saved to {output_path}")
-                return True
+            for step in getattr(interaction, "steps", []):
+                content_list = getattr(step, "content", [])
+                for item in content_list:
+                    item_type = getattr(item, "type", "")
+                    mime_type = getattr(item, "mime_type", "")
+                    if item_type == "image" or (isinstance(mime_type, str) and mime_type.startswith("image/")):
+                        image_data = base64.b64decode(item.data)
+                        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                        with open(output_path, "wb") as f:
+                            f.write(image_data)
+                        print(f"✅ Image saved to {output_path}")
+                        return True
 
-        print("⚠️  No image returned in response.")
-        return False
+            print(f"⚠️  No image returned in response from {model_name}.")
 
-    except Exception as e:
-        print(f"⚠️  Image generation failed: {e}")
-        return False
+        except Exception as e:
+            print(f"⚠️  Image generation failed with {model_name}: {e}")
+            if "500" in str(e) or "api_error" in str(e):
+                print("Falling back to next model...")
+                continue
+            else:
+                # If it's a different error (e.g., auth), we might still want to try the fallback, 
+                # but let's just continue to the next model anyway.
+                print("Falling back to next model...")
+                continue
+
+    print("❌ All models failed to generate an image.")
+    return False
 
 def main():
     parser = argparse.ArgumentParser(description="Generate cover image with Gemini")
@@ -107,7 +123,7 @@ def main():
         with open(args.metadata, "r") as f:
             metadata = json.load(f)
 
-        title = metadata.get("show_title", "AI Radio")
+        title = metadata.get("show_title", "AI Talk Radio")
         summary = metadata.get("two_sentence_summary", "")
 
         print(f"Selecting prompt template for title: '{title}'")

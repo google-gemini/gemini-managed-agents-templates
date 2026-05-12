@@ -39,9 +39,7 @@ python3 skills/music-generation/scripts/generate_music.py --workspace ./workspac
 
 ### Dependencies
 
-- `google-genai` (>= 1.55.0)
-- `GEMINI_API_KEY` environment variable
-
+- `google-genai` (>= 2.0.0)
 ## Output
 
 - **File**: `{workspace}/audio/music/background.mp3`

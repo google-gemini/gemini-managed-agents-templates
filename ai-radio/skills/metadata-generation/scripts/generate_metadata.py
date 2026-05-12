@@ -6,7 +6,6 @@ Usage:
 
 Requires:
     pip install google-genai pydub
-    GEMINI_API_KEY environment variable
 
 Output:
     {workspace}/data/show_notes.json
@@ -20,7 +19,7 @@ from google import genai
 from pydub import AudioSegment
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate AI Radio show metadata")
+    parser = argparse.ArgumentParser(description="Generate AI Talk Radio show metadata")
     parser.add_argument("--workspace", default="workspace", help="Workspace directory")
     args = parser.parse_args()
 
@@ -47,7 +46,7 @@ def main():
         print(f"ERROR: Audio file not found in {os.path.dirname(audio_mp3)}")
         return
 
-    print("=== AI Radio: Metadata Generation ===\n")
+    print("=== AI Talk Radio: Metadata Generation ===\n")
     print(f"Transcript: {transcript_path}")
     print(f"Audio: {audio_path}")
 
@@ -113,8 +112,8 @@ Return ONLY a valid JSON object. Do NOT wrap it in markdown code blocks. Ensure 
 
         # Access response
         response_text = ""
-        if interaction.outputs:
-            response_text = interaction.outputs[-1].text
+        if hasattr(interaction, "steps") and interaction.steps and interaction.steps[-1].content:
+            response_text = interaction.steps[-1].content[0].text
         else:
              print("ERROR: No output received from Gemini.")
              return
@@ -130,19 +129,19 @@ Return ONLY a valid JSON object. Do NOT wrap it in markdown code blocks. Ensure 
         # Validate JSON
         try:
             json_data = json.loads(response_text)
-            
+
             # Save
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             with open(output_path, "w") as f:
                 json.dump(json_data, f, indent=2)
-            
+
             print(f"✅ Metadata saved to {output_path}")
-            
+
         except json.JSONDecodeError as e:
             print(f"ERROR: Failed to parse JSON response: {e}")
             print("Raw response was:")
             print(response_text)
-            
+
     except Exception as e:
         print(f"ERROR: API call failed: {e}")
 

@@ -1,11 +1,11 @@
 ---
 name: script-writing
-description: Generate the AI Radio show script from research using the Interactions API.
+description: Generate the AI Talk Radio show script from research using the Interactions API.
 ---
 
 # Script Writing
 
-Generate a naturalistic, multi-character radio show script directly via the LLM. The script features host Jordan taking calls from people around the world, with advanced audio tags.
+Generate a naturalistic, multi-character radio show script directly via the LLM. The script features host Paul taking calls from people around the world, with advanced audio tags.
 
 ## Embedded Script
 
@@ -24,10 +24,10 @@ python3 skills/script-writing/scripts/generate_script.py --workspace ./workspace
 
 | Style | Callers | Format | Use when user says... |
 |-------|---------|--------|----------------------|
-| `debate` | 2 per topic, opposing views | Structured back-and-forth, Jordan moderates | "opposing views", "debate", "both sides" |
+| `debate` | 2 per topic, opposing views | Structured back-and-forth, Paul moderates | "opposing views", "debate", "both sides" |
 | `roundtable` | 3-4, different angles | Collaborative discussion, callers build on each other | "roundtable", "panel", "discussion" |
-| `interview` | 1-2 with direct experience | Q&A format, Jordan asks probing questions | "interview", "deep dive", "expert" |
-| `explainer` | 2-3, each explains an aspect | Teach the audience, Jordan asks clarifying questions | "explain", "break it down", "what is" |
+| `interview` | 1-2 with direct experience | Q&A format, Paul asks probing questions | "interview", "deep dive", "expert" |
+| `explainer` | 2-3, each explains an aspect | Teach the audience, Paul asks clarifying questions | "explain", "break it down", "what is" |
 | `default` | Same as `debate` | Default when no style specified | *(anything else)* |
 
 ### Examples
@@ -59,19 +59,17 @@ python3 skills/script-writing/scripts/generate_script.py \
 
 ### Dependencies
 
-- `google-genai` (>= 1.55.0)
-- `GEMINI_API_KEY` environment variable
-
+- `google-genai` (>= 2.0.0)
 ## Output
 
-- **File**: `{workspace}/data/script.md`
+- **Script File**: `{workspace}/data/script.md`
 - **Format**: Plain text, each line starting with `Speaker: dialogue`
 
 ## Cast
 
 | Speaker | Role | Personality |
 |---------|------|-------------|
-| **Jordan** | Host | Professional but relatable British moderator |
+| **Paul** | Host | Professional but relatable British moderator |
 | **Callers** | Call-ins | Amateur, rough, natural — from various cities around the world |
 
 ## Script Format Rules

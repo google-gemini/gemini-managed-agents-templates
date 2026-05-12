@@ -27,38 +27,16 @@ python3 skills/tts-generation/scripts/generate_tts.py --workspace ./workspace
 3. Generates TTS for all turns **in parallel** using a thread pool (default 8 workers).
 4. **Retries** each failed turn up to 3 times with exponential backoff.
 5. Applies an ffmpeg telephone bandpass filter (300Hz–3.4kHz) to correspondent voices.
-6. Keeps the host (Jordan) audio clean and unfiltered.
+6. Keeps the host (Paul) audio clean and unfiltered.
 7. Concatenates all segments in original script order into a single WAV.
 
 ### Dependencies
 
-- `google-genai` (>= 1.55.0)
+- `google-genai` (>= 2.0.0)
 - `ffmpeg` (system)
-- `GEMINI_API_KEY` environment variable
-
 ## API Details
 
-Uses the **Interactions API** with single-speaker TTS — no multi-speaker workaround needed:
-
-```python
-interaction = client.interactions.create(
-    model="gemini-3.1-flash-tts-preview",
-    input=text,
-    response_modalities=["audio"],
-    generation_config={
-        "speech_config": {
-            "voice": "Puck",
-            "language": "en-US",
-        }
-    },
-    store=False,
-)
-
-for output in interaction.outputs:
-    if output.type == "audio":
-        pcm_data = base64.b64decode(output.data)
-        wave_file("output.wav", pcm_data)
-```
+Uses the **Interactions API** with single-speaker TTS — no multi-speaker workaround needed.
 
 ## Voice Assignment
 
@@ -66,7 +44,7 @@ Voices are assigned **dynamically** based on `[Male]` / `[Female]` gender tags i
 
 | Speaker | Voice | Audio Treatment |
 |---------|-------|-----------------|
-| **Jordan** (host) | `Puck` | **Clean** — no filter |
+| **Paul** (host) | `Puck` | **Clean** — no filter |
 | Caller `[Female]` — 1st | `Kore` | **Telephone filter** |
 | Caller `[Female]` — 2nd | `Aoede` | **Telephone filter** |
 | Caller `[Male]` — 1st | `Charon` | **Telephone filter** |

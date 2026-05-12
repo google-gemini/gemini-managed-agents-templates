@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Mix speech audio and background music into the final AI Radio radio show.
+"""Mix speech audio and background music into the final AI Talk Radio radio show.
 
 Usage:
     python3 mix_audio.py --workspace ./workspace
@@ -22,7 +22,6 @@ Requires:
     ffmpeg (system)
 
 Output:
-    {workspace}/audio/final/ai_radio.wav
     {workspace}/audio/final/ai_radio.mp3
 """
 
@@ -32,7 +31,7 @@ from pydub import AudioSegment
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Mix AI Radio audio")
+    parser = argparse.ArgumentParser(description="Mix AI Talk Radio audio")
     parser.add_argument("--workspace", default="workspace", help="Workspace directory")
     args = parser.parse_args()
 
@@ -41,7 +40,7 @@ def main():
     output_dir = os.path.join(args.workspace, "audio", "final")
     os.makedirs(output_dir, exist_ok=True)
 
-    print("=== AI Radio: Audio Mixing ===\n")
+    print("=== AI Talk Radio: Audio Mixing ===\n")
 
     # Load speech
     print("Loading speech audio...")
@@ -85,11 +84,6 @@ def main():
     # Overall fades
     combined = combined.fade_in(500).fade_out(2000)
 
-    # Export WAV
-    wav_path = os.path.join(output_dir, "ai_radio.wav")
-    combined.export(wav_path, format="wav")
-    print(f"Saved WAV: {wav_path}")
-
     # Export MP3
     try:
         mp3_path = os.path.join(output_dir, "ai_radio.mp3")
@@ -100,13 +94,11 @@ def main():
         mp3_path = None
 
     # Stats
-    wav_mb = os.path.getsize(wav_path) / (1024 * 1024)
-    print(f"\n  WAV: {wav_mb:.1f} MB")
     if mp3_path and os.path.exists(mp3_path):
         mp3_mb = os.path.getsize(mp3_path) / (1024 * 1024)
-        print(f"  MP3: {mp3_mb:.1f} MB")
+        print(f"\n  MP3: {mp3_mb:.1f} MB")
     print(f"  Duration: {len(combined) / 1000:.1f}s")
-    print(f"\n✅ AI Radio mixed successfully!")
+    print(f"\n✅ AI Talk Radio mixed successfully!")
 
 
 if __name__ == "__main__":

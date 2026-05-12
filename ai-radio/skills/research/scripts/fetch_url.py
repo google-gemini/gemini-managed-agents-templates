@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Fetch and extract content from any URL for AI Radio research.
+"""Fetch and extract content from any URL for AI Talk Radio research.
 
 Usage:
     python3 fetch_url.py --url https://example.com/blog-post --workspace ./workspace
@@ -97,7 +97,7 @@ def extract_meta_description(html):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Fetch URL content for AI Radio")
+    parser = argparse.ArgumentParser(description="Fetch URL content for AI Talk Radio")
     parser.add_argument("--url", required=True, help="URL to fetch content from")
     parser.add_argument("--workspace", default="workspace", help="Workspace directory")
     parser.add_argument("--max-chars", type=int, default=8000, help="Max chars to extract")
@@ -106,7 +106,7 @@ def main():
     out_dir = os.path.join(args.workspace, "data", "research")
     os.makedirs(out_dir, exist_ok=True)
 
-    print(f"=== AI Radio Research: URL Content ===")
+    print(f"=== AI Talk Radio Research: URL Content ===")
     print(f"URL: {args.url}\n")
 
     print("Fetching page...")

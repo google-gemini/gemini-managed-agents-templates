@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Generate the AI Radio radio show script from research using the Interactions API.
+"""Generate the AI Talk Radio radio show script from research using the Interactions API.
 
 Usage:
     python3 generate_script.py --workspace ./workspace
@@ -21,7 +21,6 @@ Usage:
 
 Requires:
     pip install google-genai
-    GEMINI_API_KEY environment variable
 
 Output:
     {workspace}/data/script.md
@@ -31,14 +30,14 @@ import argparse
 import os
 from google import genai
 
-BASE_PROMPT = """You are a scriptwriter for "AI Radio", a community radio show for a nerdy, tech-savvy audience.
+BASE_PROMPT = """You are a scriptwriter for "AI Talk Radio", a community radio show for a nerdy, tech-savvy audience.
 
 Write a ~3-minute radio script based on the research provided. The show has:
 
-**Host**: Jordan (in the studio) — a calm, measured British moderator broadcasting from a London studio. Professional, intellectual, and polite.
+**Host**: Paul (in the studio) — a calm, measured British moderator broadcasting from a London studio. Professional, intellectual, and polite.
 
 **Format rules:**
-- Every line MUST start with a speaker name and colon: `Jordan:` or `[CallerName]:`
+- Every line MUST start with a speaker name and colon: `Paul:` or `[CallerName]:`
 - You MUST include a gender tag `[Male]` or `[Female]` at the beginning of the transcript for every caller turn.
 - You MUST include an **accent tag** `[Accent: <accent_description>]` matching the location the caller is supposedly calling from (e.g., `[Accent: Irish]` if calling from Dublin, `[Accent: Southern US]` if from Texas, `[Accent: Australian]` from Sydney, etc.).
 - Example: `Caller1: [Male] [Accent: Irish] [hesitantly] I think...`
@@ -46,7 +45,7 @@ Write a ~3-minute radio script based on the research provided. The show has:
 - Use tags like `[sighs]`, `[frustratedly]`, `[calmly]`, `[whispers]`, `[indignantly]` to make performances rich.
 - **CRITICAL**: The callers are amateurs. They should sound rough, imperfect, and natural. They should NOT speak in perfect, complete sentences. They should cut themselves off, use fillers like "uh", "like", "you know".
 - **Tone**: Callers are smart, tech-savvy individuals (nerds), not experts but informed. Their speech is imperfect because it is spontaneous, not because they lack intelligence.
-- **Host Introduction**: Host Jordan MUST always introduce a new caller by name and location before they speak for the first time.
+- **Host Introduction**: Host Paul MUST always introduce a new caller by name and location before they speak for the first time.
 - No stage directions outside of the audio tags in the transcript.
 - Keep sentences short and punchy — this is spoken word.
 - Target ~450-500 words total.
@@ -74,10 +73,10 @@ STYLE_PROMPTS = {
 **Callers**: For each topic, generate TWO callers representing opposing views. They should disagree respectfully but firmly.
 
 **Structure:**
-1. Cold Open (10 sec): Jordan teases the most controversial take.
-2. Intro (15 sec): Jordan welcomes listeners, sets up the debate format.
-3. Debate Segments (2.5 min): Jordan introduces a topic, takes calls from two sides. Callers argue their positions, Jordan moderates.
-4. Closing (15 sec): Jordan summarizes both sides, thanks callers.""",
+1. Cold Open (10 sec): Paul teases the most controversial take.
+2. Intro (15 sec): Paul welcomes listeners, sets up the debate format.
+3. Debate Segments (2.5 min): Paul introduces a topic, takes calls from two sides. Callers argue their positions, Paul moderates.
+4. Closing (15 sec): Paul summarizes both sides, thanks callers.""",
 
     "roundtable": """
 **Style: ROUNDTABLE**
@@ -85,21 +84,21 @@ STYLE_PROMPTS = {
 **Callers**: 3-4 callers each bringing a different angle on the topic. Collaborative, building on each other's points rather than arguing.
 
 **Structure:**
-1. Cold Open (10 sec): Jordan previews the topic.
-2. Intro (15 sec): Jordan welcomes the panel and introduces each caller.
-3. Discussion (2.5 min): Open conversation — callers riff on each other's points, Jordan guides the flow.
-4. Closing (15 sec): Jordan ties the threads together.""",
+1. Cold Open (10 sec): Paul previews the topic.
+2. Intro (15 sec): Paul welcomes the panel and introduces each caller.
+3. Discussion (2.5 min): Open conversation — callers riff on each other's points, Paul guides the flow.
+4. Closing (15 sec): Paul ties the threads together.""",
 
     "interview": """
 **Style: INTERVIEW**
 
-**Callers**: 1-2 callers presented as people with direct experience or deep knowledge. Jordan asks probing questions — this is more Q&A than conversation.
+**Callers**: 1-2 callers presented as people with direct experience or deep knowledge. Paul asks probing questions — this is more Q&A than conversation.
 
 **Structure:**
-1. Cold Open (10 sec): Jordan teases what the guest will reveal.
-2. Intro (15 sec): Jordan introduces the guest(s) and their background.
-3. Interview (2.5 min): Jordan asks questions, guest(s) answer in depth. Follow-up questions encouraged.
-4. Closing (15 sec): Jordan thanks the guest(s) and summarizes key takeaways.""",
+1. Cold Open (10 sec): Paul teases what the guest will reveal.
+2. Intro (15 sec): Paul introduces the guest(s) and their background.
+3. Interview (2.5 min): Paul asks questions, guest(s) answer in depth. Follow-up questions encouraged.
+4. Closing (15 sec): Paul thanks the guest(s) and summarizes key takeaways.""",
 
     "explainer": """
 **Style: EXPLAINER**
@@ -107,10 +106,10 @@ STYLE_PROMPTS = {
 **Callers**: 2-3 callers who each explain a different aspect of the topic. Think of it as a collaborative "teach the audience" format.
 
 **Structure:**
-1. Cold Open (10 sec): Jordan poses a question the audience might be wondering.
-2. Intro (15 sec): Jordan sets up the topic and says we have people who can break it down.
-3. Explainer Segments (2.5 min): Each caller explains their piece. Jordan asks clarifying questions on behalf of the audience.
-4. Closing (15 sec): Jordan recaps the key points.""",
+1. Cold Open (10 sec): Paul poses a question the audience might be wondering.
+2. Intro (15 sec): Paul sets up the topic and says we have people who can break it down.
+3. Explainer Segments (2.5 min): Each caller explains their piece. Paul asks clarifying questions on behalf of the audience.
+4. Closing (15 sec): Paul recaps the key points.""",
 }
 
 # Default style when none specified
@@ -120,7 +119,7 @@ VALID_STYLES = list(STYLE_PROMPTS.keys())
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate AI Radio radio script")
+    parser = argparse.ArgumentParser(description="Generate AI Talk Radio radio script")
     parser.add_argument("--workspace", default="workspace", help="Workspace directory")
     parser.add_argument(
         "--style",
@@ -159,15 +158,15 @@ def main():
         "- Target ~450-500 words total.",
         f"- Target ~{target_words} words total."
     )
-    
+
     # Make style prompt durations dynamic
     main_seg_min = (args.duration * 60 - 40) / 60
     main_seg_str = f"{main_seg_min:.1f} min"
     style_prompt = STYLE_PROMPTS[args.style].replace("2.5 min", main_seg_str)
-    
+
     system_prompt = modified_base_prompt + style_prompt
 
-    print(f"=== AI Radio: Script Generation ===\n")
+    print(f"=== AI Talk Radio: Script Generation ===\n")
     print(f"Style: {args.style}")
     print(f"Read {len(research)} characters of research.")
     print("Generating script via Interactions API...\n")
@@ -178,7 +177,7 @@ def main():
         system_instruction=system_prompt,
     )
 
-    script = interaction.outputs[-1].text
+    script = interaction.steps[-1].content[0].text
 
     # Save
     out_path = os.path.join(args.workspace, "data", "script.md")

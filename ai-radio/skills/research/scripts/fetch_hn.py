@@ -84,7 +84,7 @@ def do_scan(args):
     out_dir = os.path.join(args.workspace, "data", "research")
     os.makedirs(out_dir, exist_ok=True)
 
-    print(f"=== AI Radio Research: HN Scan (top {args.top}) ===\n")
+    print(f"=== AI Talk Radio Research: HN Scan (top {args.top}) ===\n")
     print("Fetching story metadata (no comments)...")
 
     top_ids = fetch_json(f"{BASE_URL}/topstories.json")[:args.top]
@@ -144,7 +144,7 @@ def do_deep_dive(args):
     os.makedirs(out_dir, exist_ok=True)
 
     story_ids = [int(sid.strip()) for sid in args.stories.split(",") if sid.strip()]
-    print(f"=== AI Radio Research: HN Deep Dive ({len(story_ids)} stories) ===\n")
+    print(f"=== AI Talk Radio Research: HN Deep Dive ({len(story_ids)} stories) ===\n")
 
     lines = [f"# Hacker News Deep Dive — {datetime.now().strftime('%B %d, %Y')}\n"]
 
@@ -187,7 +187,7 @@ def do_deep_dive(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Fetch HN stories for AI Radio")
+    parser = argparse.ArgumentParser(description="Fetch HN stories for AI Talk Radio")
     parser.add_argument("--workspace", default="workspace", help="Workspace directory")
     parser.add_argument(
         "--mode",

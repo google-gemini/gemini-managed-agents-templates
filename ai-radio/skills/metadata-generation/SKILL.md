@@ -15,7 +15,7 @@ pip install google-genai
 
 ## Workflow
 
-1.  **Read Inputs**: Load the transcript from `./workspace/data/script.md` and the final audio from `./workspace/audio/final/ai_radio.mp3` (or `.wav`).
+1.  **Read Inputs**: Load the transcript from `./workspace/data/script.md` and the final audio from `./workspace/audio/final/ai_radio.mp3`.
 2.  **Upload Audio**: Upload the audio file to the Gemini Files API.
 3.  **Generate Metadata**: Call Gemini (e.g., `gemini-3-flash-preview`) using the Interactions API, passing the uploaded audio file and the transcript.
 4.  **Save Output**: Save the resulting JSON to `./workspace/data/show_notes.json`.
@@ -24,7 +24,7 @@ pip install google-genai
 
 The skill is implemented in `scripts/generate_metadata.py`.
 
-```python
+```bash
 # Example usage
 python3 skills/metadata-generation/scripts/generate_metadata.py --workspace ./workspace
 ```
