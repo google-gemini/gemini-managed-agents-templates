@@ -1,0 +1,11 @@
+{
+  "topics": ["Gemini API", "artificial intelligence"],
+  "genres": ["TECHNOLOGY"],
+  "medium_tags": ["gemini", "artificial-intelligence"],
+  "preferences": {
+    "more": ["hands-on engineering detail", "primary sources and official announcements"],
+    "less": ["rumor and speculation pieces", "listicles"],
+    "notes": []
+  },
+  "max_items_per_topic": 15
+}
