@@ -1,0 +1,23 @@
+id: news-curator
+base_agent: antigravity-preview-05-2026
+description: "Personalized news curator that runs on a Trigger: sweeps Google News, Hacker News, and Medium for the reader's topics and genres, learns their taste from feedback across runs, and writes a daily curated briefing with trend analysis."
+tools:
+  - type: code_execution
+environment:
+  type: "remote"
+  sources: []
+  network:
+    allowlist:
+      - domain: "news.google.com"
+      - domain: "hn.algolia.com"
+      - domain: "medium.com"
+      - domain: "chat.googleapis.com"
+      - domain: "hooks.slack.com"
+      - domain: "discord.com"
+examples:
+  - title: "Daily Briefing"
+    prompt: "Run the daily curation sweep: fetch the latest news and community discussion for my interests, curate the briefing, and update the trend history."
+  - title: "Tune My Interests"
+    prompt: "Add 'quantum computing' to my topics, and going forward show me less funding-round news."
+  - title: "Trend Check"
+    prompt: "Which of my topics has been heating up across the briefings so far?"
