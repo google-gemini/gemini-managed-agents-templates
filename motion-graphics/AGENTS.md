@@ -76,8 +76,13 @@ Finalize `shot-plan.json` around the resolved assets. Select the motion vocabula
 ### Step 4 — Build Composition
 Author `compositions/index.html` inside `$PROJECT_DIR`:
 1. Use `npx hyperframes add <block>` to inject pre-built registry blocks where applicable.
-2. Structure the HTML composition using `data-*` timing attributes and `class="clip"`.
-3. Create seekable GSAP timelines exposed on `window.__timelines`.
+2. Structure the HTML composition using `data-*` timing attributes and `class="clip"` on the root wrapper:
+   `<div id="root" class="clip" data-composition-id="root" data-width="1920" data-height="1080" data-duration="6">`
+   > [!IMPORTANT]
+   > ALWAYS set `data-width="1920"` and `data-height="1080"` on the entry root wrapper to enforce 16:9 landscape video (1920x1080 resolution), unless portrait 9:16 is explicitly requested.
+3. Create seekable GSAP timelines exposed on `window.__timelines`:
+   `window.__timelines = window.__timelines || {};`
+   `window.__timelines["root"] = tl;`
 4. Ensure deterministic execution (seekable to frame 0, stable element IDs, no unmanaged random noise).
 
 ### Step 5 — Verify & Quality Gate
