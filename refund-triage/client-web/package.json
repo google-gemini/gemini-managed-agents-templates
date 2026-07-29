@@ -1,0 +1,22 @@
+{
+  "name": "refund-triage-approvals",
+  "private": true,
+  "type": "module",
+  "description": "Approvals dashboard for the refund-triage managed agent template: executes the agent's custom function calls and routes escalations to a human reviewer in the browser.",
+  "scripts": {
+    "start": "tsx server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

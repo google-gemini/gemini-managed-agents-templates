@@ -7,7 +7,7 @@ environment:
   type: "remote"
   sources:
     - type: "repository"
-      source: "https://github.com/heygen-com/hyperframes"
+      source: "https://github.com/google-gemini/gemini-managed-agents-templates"
       target: "/.agents"
   network:
     allowlist:

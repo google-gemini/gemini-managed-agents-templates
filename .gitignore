@@ -7,3 +7,7 @@ workspace/
 workspace*/
 prober_output.log
 *_probe.json
+
+videos/
+snapshot.tar
+raw_interaction.log

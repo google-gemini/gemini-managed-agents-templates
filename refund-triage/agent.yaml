@@ -1,0 +1,58 @@
+id: refund-triage
+base_agent: antigravity-preview-05-2026
+description: "Triages customer refund requests against policy: auto-approves clear cases via function calls, escalates ambiguous or high-value cases to a human for approval."
+tools:
+  - type: code_execution
+  - type: function
+    name: issue_refund
+    description: "Issue a refund through the company payment system. Only call this for requests that qualify for automatic approval under policy, or after a human has approved an escalated request. The application executes the refund and returns a confirmation."
+    parameters:
+      type: object
+      properties:
+        request_id:
+          type: string
+          description: "The refund request ID (e.g. R-1001)."
+        order_id:
+          type: string
+          description: "The order ID the refund applies to (e.g. O-2001)."
+        amount:
+          type: number
+          description: "The refund amount in USD. Must not exceed the original order amount."
+        reason:
+          type: string
+          description: "One-line justification citing the policy rule that permits this refund."
+      required: [request_id, order_id, amount, reason]
+  - type: function
+    name: escalate_to_human
+    description: "Route a refund request to the human review queue. Call this for any request that does not qualify for automatic approval, or when data is ambiguous or shows fraud signals. The application returns the human reviewer's decision."
+    parameters:
+      type: object
+      properties:
+        request_id:
+          type: string
+          description: "The refund request ID being escalated."
+        summary:
+          type: string
+          description: "A concise summary of the request: who, what, how much, and why it needs review."
+        recommendation:
+          type: string
+          enum: [approve, deny, investigate]
+          description: "Your recommended action for the human reviewer."
+        policy_flags:
+          type: array
+          items:
+            type: string
+          description: "The specific policy rules or fraud signals that triggered escalation."
+      required: [request_id, summary, recommendation, policy_flags]
+environment:
+  type: "remote"
+  sources: []
+  network:
+    allowlist: []
+examples:
+  - title: "Summarize Pending Requests"
+    prompt: "Summarize the pending refund requests and tell me which ones qualify for automatic approval under our policy. Do not action anything yet."
+  - title: "Process the Refund Queue"
+    prompt: "Process all pending refund requests: issue refunds for the ones policy allows, and escalate the rest to me with your recommendation."
+  - title: "Explain a Decision"
+    prompt: "Why does request R-1004 need human review? Cite the exact policy rule."

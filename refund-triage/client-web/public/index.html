@@ -1,0 +1,551 @@
+<!doctype html>
+<!--
+  Copyright 2026 Google LLC
+  Licensed under the Apache License, Version 2.0.
+  Approvals dashboard for the refund-triage managed agent template.
+  Zero-build on purpose: one file, vanilla JS, served by server.ts.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Refund Triage — Approvals</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --border: #e3e6ea;
+    --text: #1c1f23;
+    --muted: #6b7280;
+    --accent: #1a73e8;
+    --accent-soft: #e8f0fe;
+    --green: #188038;
+    --green-soft: #e6f4ea;
+    --red: #d93025;
+    --red-soft: #fce8e6;
+    --amber: #b06000;
+    --amber-soft: #fef7e0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Google Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 17px; font-weight: 600; margin: 0; }
+  header h1 span { color: var(--muted); font-weight: 400; }
+  .status {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--border);
+    color: var(--muted);
+  }
+  .status.running { background: var(--accent-soft); color: var(--accent); }
+  .status.waiting { background: var(--amber-soft); color: var(--amber); }
+  .status.done { background: var(--green-soft); color: var(--green); }
+  .status.error { background: var(--red-soft); color: var(--red); }
+  .spacer { flex: 1; }
+  .launcher {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 36px 20px 8px;
+  }
+  #prompt {
+    width: min(560px, 90vw);
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font: inherit;
+    font-size: 13px;
+    text-align: center;
+    background: var(--surface);
+  }
+  #prompt::placeholder { color: var(--muted); }
+  #prompt:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  button {
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: filter 0.12s;
+  }
+  button:hover:not(:disabled) { filter: brightness(0.95); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #run {
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    padding: 12px 32px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(26, 115, 232, 0.3);
+  }
+
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 24px 28px 48px;
+  }
+  h2 {
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .card.esc {
+    border-left: 4px solid var(--amber);
+    border-radius: 14px;
+    margin: 14px 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+  .card.esc.decided { opacity: 0.65; }
+  .decision-line { font-weight: 600; font-size: 14px; }
+  .decision-line.approve { color: var(--green); }
+  .decision-line.deny { color: var(--red); }
+  .decision-line.investigate { color: var(--amber); }
+  .card .row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .card .req { font-weight: 600; font-size: 15px; }
+  .card .rec {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .rec.approve { background: var(--green-soft); color: var(--green); }
+  .rec.deny { background: var(--red-soft); color: var(--red); }
+  .rec.investigate { background: var(--amber-soft); color: var(--amber); }
+  .card .summary { margin: 8px 0 10px; color: var(--text); }
+  .flags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .flag {
+    font-size: 12px;
+    background: var(--red-soft);
+    color: var(--red);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+  .card input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .actions { display: flex; gap: 8px; }
+  .actions .approve { background: var(--green); color: #fff; }
+  .actions .deny { background: var(--red); color: #fff; }
+  .actions .investigate { background: var(--amber-soft); color: var(--amber); }
+
+  .feed-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-item .dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 7px;
+    background: var(--muted);
+  }
+  .dot.green { background: var(--green); }
+  .dot.amber { background: var(--amber); }
+  .dot.blue { background: var(--accent); }
+  .dot.red { background: var(--red); }
+  .feed-item time { color: var(--muted); font-size: 12px; white-space: nowrap; margin-top: 2px; }
+  .feed-item .body { flex: 1; }
+  .feed-item .body b { font-weight: 600; }
+  .amount { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  #summary-card { border-left: 4px solid var(--green); display: none; font-size: 14px; }
+  #summary-card h3, #summary-card h4, #summary-card h5 {
+    margin: 14px 0 6px;
+    font-size: 15px;
+  }
+  #summary-card h3:first-child { margin-top: 0; }
+  #summary-card p { margin: 8px 0; }
+  #summary-card ul, #summary-card ol { margin: 8px 0; padding-left: 22px; }
+  #summary-card li { margin: 3px 0; }
+  #summary-card hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+  #summary-card code {
+    background: var(--bg);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 12.5px;
+  }
+  #summary-card table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 13px;
+  }
+  #summary-card th, #summary-card td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  #summary-card th { background: var(--bg); font-weight: 600; white-space: nowrap; }
+
+  .thinking {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-style: italic;
+  }
+  .thinking .pulse {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.3s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.25; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Refund Triage <span>· Approvals Dashboard</span></h1>
+  <div class="spacer"></div>
+  <span id="status" class="status">idle</span>
+</header>
+
+<section class="launcher">
+  <button id="run">Process refund queue</button>
+  <input id="prompt" type="text" placeholder="Optional custom prompt — default processes the whole queue" />
+</section>
+
+<main>
+  <h2>Agent activity</h2>
+  <div class="card" id="feed"><div id="feed-empty" style="color:var(--muted)">No activity yet. Start a run to watch the agent triage the queue.</div></div>
+  <div class="card" id="summary-card"></div>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const statusEl = $("status"), feed = $("feed");
+let pendingCount = 0, runState = "idle";
+
+function setStatus(state, label) {
+  runState = state;
+  statusEl.className = "status " + state;
+  statusEl.textContent = label;
+  $("run").disabled = state === "running" || state === "waiting";
+}
+
+function refreshStatus() {
+  if (runState === "done" || runState === "error" || runState === "idle") return;
+  if (pendingCount > 0) setStatus("waiting", pendingCount + " awaiting review");
+  else setStatus("running", "agent working…");
+}
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function feedItem(dotColor, at, htmlBuilder) {
+  $("feed-empty")?.remove();
+  const item = el("div", "feed-item");
+  item.appendChild(el("span", "dot " + dotColor));
+  const time = el("time", "", new Date(at).toLocaleTimeString());
+  const body = el("div", "body");
+  htmlBuilder(body);
+  item.append(body, time);
+  feed.appendChild(item);
+  keepThinkingLast();
+  item.scrollIntoView({ block: "nearest" });
+}
+
+// --- live "agent is thinking" indicator -----------------------------------
+// Thought summaries stream in continuously; we show the latest one as a single
+// pulsing line pinned to the bottom of the feed rather than flooding the log.
+
+function thinkingTitle(text) {
+  const bold = text.match(/\*\*(.+?)\*\*/);
+  const title = (bold ? bold[1] : text.split("\n")[0]).trim();
+  return title.length > 90 ? title.slice(0, 90) + "…" : title;
+}
+
+function showThinking(text) {
+  let node = $("thinking");
+  if (!node) {
+    $("feed-empty")?.remove();
+    node = el("div", "thinking");
+    node.id = "thinking";
+    node.appendChild(el("span", "pulse"));
+    node.appendChild(el("span", "", ""));
+    node.setAttribute("aria-live", "polite");
+    feed.appendChild(node);
+  }
+  node.lastChild.textContent = thinkingTitle(text) + "…";
+  keepThinkingLast();
+}
+
+function keepThinkingLast() {
+  const node = $("thinking");
+  if (node && node !== feed.lastElementChild) feed.appendChild(node);
+}
+
+function hideThinking() {
+  $("thinking")?.remove();
+}
+
+// A new run starts a fresh dashboard: clear the activity stream (inline
+// review cards included) and the previous summary. (Refreshing mid-run does
+// NOT clear anything — the server replays the current run's events so
+// pending cards are never lost.)
+function resetDashboard() {
+  feed.replaceChildren();
+  pendingCount = 0;
+  const summary = $("summary-card");
+  summary.style.display = "none";
+  summary.textContent = "";
+}
+
+function money(value) {
+  return "$" + Number(value).toFixed(2);
+}
+
+// Escalations render inline in the activity stream as review widgets; once
+// decided they stay in place, dimmed, with the decision recorded on the card.
+function renderEscalation(data) {
+  $("feed-empty")?.remove();
+  pendingCount++;
+  const card = el("div", "card esc");
+  card.id = "esc-" + data.call_id;
+
+  const row = el("div", "row");
+  row.appendChild(el("span", "req", String(data.request_id ?? "?")));
+  row.appendChild(el("span", "rec " + data.recommendation, "agent: " + data.recommendation));
+  card.appendChild(row);
+  card.appendChild(el("p", "summary", String(data.summary ?? "")));
+
+  const flags = el("div", "flags");
+  for (const flag of data.policy_flags ?? []) flags.appendChild(el("span", "flag", flag));
+  card.appendChild(flags);
+
+  const note = el("input");
+  note.type = "text";
+  note.placeholder = "Optional note for the audit log";
+  card.appendChild(note);
+
+  const actions = el("div", "actions");
+  for (const decision of ["approve", "deny", "investigate"]) {
+    const button = el("button", decision, decision[0].toUpperCase() + decision.slice(1));
+    button.onclick = async () => {
+      for (const b of actions.querySelectorAll("button")) b.disabled = true;
+      const res = await fetch("/api/decide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ call_id: data.call_id, decision, note: note.value }),
+      });
+      if (!res.ok) for (const b of actions.querySelectorAll("button")) b.disabled = false;
+    };
+    actions.appendChild(button);
+  }
+  card.appendChild(actions);
+  feed.appendChild(card);
+  keepThinkingLast();
+  card.scrollIntoView({ block: "nearest" });
+  refreshStatus();
+}
+
+function markDecided(callId, decision, note) {
+  pendingCount = Math.max(0, pendingCount - 1);
+  const card = $("esc-" + callId);
+  if (card && !card.classList.contains("decided")) {
+    card.classList.add("decided");
+    card.querySelector("input")?.remove();
+    card.querySelector(".actions")?.remove();
+    card.appendChild(el("div", "decision-line " + decision,
+      "You chose " + decision + (note ? " — “" + note + "”" : "")));
+  }
+  refreshStatus();
+}
+
+function handleEvent(event) {
+  const { type, at, data } = event;
+  switch (type) {
+    case "run_started":
+      resetDashboard();
+      setStatus("running", "agent working…");
+      feedItem("blue", at, (b) => { b.innerHTML = "<b>Run started</b> — " + escapeHtml(data.prompt); });
+      showThinking("Starting up");
+      break;
+    case "agent_thinking":
+      if (runState === "running" || runState === "waiting") showThinking(data.text);
+      break;
+    case "refund_issued":
+      feedItem("green", at, (b) => {
+        b.innerHTML = "<b>Refund issued</b> — " + escapeHtml(data.request_id) +
+          " · <span class='amount'>" + money(data.amount) + "</span> · " +
+          escapeHtml(data.reason) + " <span style='color:var(--muted)'>(" +
+          escapeHtml(data.confirmation_id) + ")</span>";
+      });
+      break;
+    case "escalation_pending":
+      renderEscalation(data);
+      break;
+    case "decision_recorded":
+      markDecided(data.call_id, data.decision, data.note);
+      break;
+    case "run_complete":
+      setStatus("done", "run complete");
+      hideThinking();
+      feedItem("green", at, (b) => { b.innerHTML = "<b>Run complete</b>"; });
+      if (data.summary) {
+        const card = $("summary-card");
+        card.innerHTML = renderMarkdown(data.summary);
+        card.style.display = "block";
+      }
+      break;
+    case "run_error":
+      setStatus("error", "error");
+      hideThinking();
+      feedItem("red", at, (b) => { b.innerHTML = "<b>Error</b> — " + escapeHtml(data.message) + ". Click “Process refund queue” to try again."; });
+      break;
+  }
+}
+
+function escapeHtml(value) {
+  const div = document.createElement("div");
+  div.textContent = String(value ?? "");
+  return div.innerHTML;
+}
+
+// --- minimal markdown renderer for the agent's final summary ---------------
+// Covers what agent summaries actually use: headings, bold/italic/code,
+// links, lists, tables, and horizontal rules. The whole input is HTML-escaped
+// FIRST, so model output can never inject markup.
+
+function mdInline(s) {
+  return s
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/\*([^*]+)\*/g, "<i>$1</i>")
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+
+function mdCells(line) {
+  const cells = line.split("|");
+  if (cells.length && !cells[0].trim()) cells.shift();
+  if (cells.length && !cells[cells.length - 1].trim()) cells.pop();
+  return cells.map((c) => c.trim());
+}
+
+function renderMarkdown(md) {
+  const lines = escapeHtml(md).split("\n");
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+
+    const heading = line.match(/^(#{1,4})\s+(.*)/);
+    if (heading) {
+      const tag = "h" + Math.min(heading[1].length + 2, 5);
+      out.push(`<${tag}>${mdInline(heading[2])}</${tag}>`);
+      i++; continue;
+    }
+    if (/^\s*(-{3,}|\*{3,})\s*$/.test(line)) { out.push("<hr>"); i++; continue; }
+
+    if (line.includes("|") && i + 1 < lines.length && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i + 1]) && lines[i + 1].includes("-")) {
+      const head = mdCells(line).map((c) => `<th>${mdInline(c)}</th>`).join("");
+      const rows = [];
+      i += 2;
+      while (i < lines.length && lines[i].includes("|")) {
+        rows.push("<tr>" + mdCells(lines[i]).map((c) => `<td>${mdInline(c)}</td>`).join("") + "</tr>");
+        i++;
+      }
+      out.push(`<table><thead><tr>${head}</tr></thead><tbody>${rows.join("")}</tbody></table>`);
+      continue;
+    }
+
+    const listMatch = line.match(/^\s*([-*]|\d+\.)\s+/);
+    if (listMatch) {
+      const ordered = /\d/.test(listMatch[1]);
+      const pattern = ordered ? /^\s*\d+\.\s+/ : /^\s*[-*]\s+/;
+      const items = [];
+      while (i < lines.length && pattern.test(lines[i])) {
+        items.push(`<li>${mdInline(lines[i].replace(pattern, ""))}</li>`);
+        i++;
+      }
+      out.push(ordered ? `<ol>${items.join("")}</ol>` : `<ul>${items.join("")}</ul>`);
+      continue;
+    }
+
+    const para = [];
+    while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|\s*([-*]|\d+\.)\s|\s*(-{3,}|\*{3,})\s*$)/.test(lines[i]) && !(lines[i].includes("|") && i + 1 < lines.length && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i + 1]))) {
+      para.push(lines[i]);
+      i++;
+    }
+    out.push(`<p>${mdInline(para.join(" "))}</p>`);
+  }
+  return out.join("\n");
+}
+
+$("run").onclick = async () => {
+  const res = await fetch("/api/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: $("prompt").value }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    alert(body.error ?? "Failed to start run");
+  }
+};
+
+const source = new EventSource("/api/events");
+source.addEventListener("update", (message) => handleEvent(JSON.parse(message.data)));
+source.onerror = () => setStatus(runState === "idle" ? "idle" : runState, "reconnecting…");
+</script>
+</body>
+</html>
