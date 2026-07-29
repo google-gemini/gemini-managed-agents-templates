@@ -1,0 +1,27 @@
+id: motion-graphics
+base_agent: antigravity-preview-05-2026
+description: "Design-led motion graphics generator powered by HyperFrames: turns website URLs, text prompts, data stats, logos, tweets, or news into high-impact, design-forward motion graphics rendered directly to MP4 via code execution."
+tools:
+  - type: code_execution
+environment:
+  type: "remote"
+  sources:
+    - type: "repository"
+      source: "https://github.com/heygen-com/hyperframes"
+      target: "/.agents"
+  network:
+    allowlist:
+      - domain: "github.com"
+      - domain: "raw.githubusercontent.com"
+      - domain: "registry.npmjs.org"
+      - domain: "cdn.jsdelivr.net"
+      - domain: "generativelanguage.googleapis.com"
+examples:
+  - title: "Website Showcase Graphic"
+    prompt: "Make a motion graphic based on my website https://aistudio.google.com/welcome"
+  - title: "Kinetic Typography"
+    prompt: "Create a 5-second kinetic typography motion graphic for the quote: 'Simplicity is the ultimate sophistication.'"
+  - title: "Stat Count-Up"
+    prompt: "Generate a high-tech stat count-up motion graphic showing our growth to $10M ARR."
+  - title: "Logo Reveal"
+    prompt: "Create a 4-second animated logo reveal with a sleek dark aesthetic."

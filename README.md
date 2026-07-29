@@ -9,6 +9,8 @@ This repository contains a collection of templates for building and deploying Ge
 - **Repo Maintainer**: Provide a GitHub repo URL, find top issues, fix them, and send Pull Requests.
 - **Document Processor**: A template for processing and analyzing documents.
 - **News Curator**: Personalized daily briefings on a Trigger schedule — sweeps Google News, Hacker News, and Medium for your topics, learns your taste across runs via the persistent environment.
+- **Motion Graphics**: Create short, design-led motion graphics from prompts, website URLs, quotes, stats, or logos powered by HyperFrames.
+
 
 ## Getting Started
 

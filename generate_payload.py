@@ -95,17 +95,26 @@ def make_payload():
                             "encoding": "base64"
                         })
 
-    add_files('skills')
-    add_files('workspace')
-
     # Merge sources from environment.sources in agent.yaml (e.g. gcs, github)
     env = config.get('environment', {})
+    env_sources = []
+    has_repo_agents_source = False
     if isinstance(env, dict) and env.get('type') == 'remote':
         for src in env.get('sources', []):
-            sources.append(src)
+            env_sources.append(src)
+            if src.get('type') == 'repository' and src.get('target') in ('/.agents', '/.agents/'):
+                has_repo_agents_source = True
 
-    # Also merge top-level sources from agent.yaml
     for src in config.get('sources', []):
+        env_sources.append(src)
+        if src.get('type') == 'repository' and src.get('target') in ('/.agents', '/.agents/'):
+            has_repo_agents_source = True
+
+    if not has_repo_agents_source:
+        add_files('skills')
+    add_files('workspace')
+
+    for src in env_sources:
         sources.append(src)
 
     prompt = sys.argv[1] if len(sys.argv) > 1 else "Hello"
