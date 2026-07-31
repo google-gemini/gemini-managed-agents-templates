@@ -35,6 +35,7 @@ Usage (from the news-curator/ template directory):
     python3 client/triggers.py executions TRIGGER_ID       # history + interaction ids
     python3 client/triggers.py digest TRIGGER_ID           # print latest run's output
     python3 client/triggers.py usage TRIGGER_ID            # token usage per execution
+    python3 client/triggers.py rename TRIGGER_ID "NAME"   # update trigger display name
     python3 client/triggers.py pause TRIGGER_ID
     python3 client/triggers.py resume TRIGGER_ID
     python3 client/triggers.py delete TRIGGER_ID
@@ -225,6 +226,12 @@ def cmd_status(args, status):
     print(f"Trigger {args.trigger_id} -> {status}")
 
 
+def cmd_rename(args):
+    client = make_client()
+    client.triggers.update(args.trigger_id, display_name=args.name)
+    print(f"Trigger {args.trigger_id} renamed to '{args.name}'")
+
+
 def list_executions(client, trigger_id):
     result = client.triggers.list_executions(trigger_id)
     return field(result, "trigger_executions") or []
@@ -328,6 +335,14 @@ def main():
     create.set_defaults(func=cmd_create)
 
     sub.add_parser("list", help="list triggers").set_defaults(func=cmd_list)
+
+    rename = sub.add_parser(
+        "rename",
+        help='rename a trigger display name (e.g. rename TRIGGER_ID "New Name")',
+    )
+    rename.add_argument("trigger_id")
+    rename.add_argument("name", help="new display name")
+    rename.set_defaults(func=cmd_rename)
 
     feedback = sub.add_parser(
         "feedback",

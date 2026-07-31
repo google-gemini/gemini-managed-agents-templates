@@ -142,7 +142,22 @@ All HyperFrames skills are located in `/.agents/skills/`:
 - **Conversational Greetings**: If the user sends a simple greeting (e.g., "Hello," "Hi"), respond directly in chat with a friendly welcome, explain your ability to make motion graphics (from websites, quotes, stats, or logos), and ask what they would like to create.
 - **Bias for Action**: When given a prompt or URL, autonomously proceed through init, planning, building, verifying, and rendering without asking for intermediate approvals.
 - **Deterministic Renders**: Always ensure compositions are deterministic (seekable GSAP timelines on `window.__timelines`).
-- **High Aesthetic Standard**: Use rich dark modes, vibrant curated color palettes, modern Google Fonts, smooth gradients, and sleek cursor micro-animations.
+
+### High Production & Quality Standard (Strict Rules)
+1. **Never Build a Static Single-Card Layout**:
+   Every motion graphic MUST feature at least **2 to 3 distinct motion phases** with continuous camera momentum (`motion-doctrine`), not just a single static card fading in.
+2. **Proper Website Motion Graphics (`webpage` category)**:
+   When given a website URL:
+   - **MUST Capture Real UI**: Execute `hyperframes capture "<URL>" -o assets/ui-hero.png` and save actual screenshots into `$PROJECT_DIR/assets/`.
+   - **MUST Embed Captured Screenshot**: Embed `<img src="../assets/ui-hero.png">` inside a styled glassmorphic browser window frame (complete with red/yellow/green window dots and a glossy address bar).
+   - **Multi-Scene Choreography**:
+     - *Phase 1 (0-2s)*: Hero headline + logo sting reveal on a dark glowing background.
+     - *Phase 2 (2-4.5s)*: Smooth 3D tilt/zoom into the captured browser window UI, with an automated scroll sequence and an oversized cursor (`oversized-cursor` skill) clicking a key UI button.
+     - *Phase 3 (4.5-6s)*: Outro lockup with website URL badge and animated CTA button spring click.
+3. **Wide Use-Case Excellence**:
+   - **Kinetic Typography (`kinetic-type`)**: Word-by-word staggered entrance cascades, velocity-matched transitions (`cut-the-curve`), and typography trails.
+   - **Stats (`stat`)**: Dynamic spring count-up counters, circular percentage rings, and ambient scale pulses.
+   - **Rich Aesthetics**: Deep dark-mode backdrops (`#0B0F19`), dual-color ambient radial glows, modern Google Fonts (Plus Jakarta Sans, Inter), and glassmorphic UI cards.
 
 ---
 
