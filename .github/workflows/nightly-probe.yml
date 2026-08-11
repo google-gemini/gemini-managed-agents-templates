@@ -1,4 +1,4 @@
-name: Hourly Template Probe
+name: Nightly Template Probe
 
 on:
   schedule:
