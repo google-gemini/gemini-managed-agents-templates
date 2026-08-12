@@ -1,8 +1,8 @@
-name: Hourly Template Probe
+name: Nightly Template Probe
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Run every hour
+    - cron: '0 2 * * *'  # Nightly at 2am
   workflow_dispatch:      # Allow manual trigger
   pull_request:          # Allow testing on PRs
 
