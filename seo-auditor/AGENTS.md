@@ -16,7 +16,7 @@ When the user provides a target URL (or you need to ask for one):
 1. **Validate URL** — ensure the URL is well-formed and includes a protocol (add `https://` if missing).
 2. **Run Dual Strategy Audit** — execute the pre-installed audit script to get both Mobile and Desktop metrics:
    ```bash
-   python3 /.agents/workspace/run_audit.py <URL>
+   python3 /.agents/scripts/run_audit.py <URL>
    ```
 3. **Check Search Indexing** — use the `google_search` tool to query `site:<domain>` and verify if the site is indexed.
 4. **Analyze Findings** — compare loading speeds between Mobile and Desktop, extract Core Web Vitals, and identify performance bottlenecks.

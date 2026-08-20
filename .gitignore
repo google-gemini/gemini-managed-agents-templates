@@ -5,6 +5,5 @@ __pycache__/
 .venv*/
 workspace/
 workspace*/
-!**/workspace/run_audit.py
 prober_output.log
 *_probe.json
