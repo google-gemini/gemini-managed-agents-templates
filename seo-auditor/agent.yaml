@@ -1,0 +1,14 @@
+id: seo-auditor
+base_agent: antigravity-preview-05-2026
+description: "Audits published web applications for loading speed, mobile usability, Core Web Vitals, and search readiness using Lighthouse, comparing Mobile vs Desktop strategies side-by-side."
+tools:
+  - type: code_execution
+  - type: google_search
+environment:
+  type: "remote"
+  network:
+    allowlist:
+      - domain: "*"
+examples:
+  - title: "Audit Web App (Mobile & Desktop)"
+    prompt: "Audit https://web.dev and produce a side-by-side Mobile vs Desktop Core Web Vitals and SEO performance report."
