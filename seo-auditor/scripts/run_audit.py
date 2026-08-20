@@ -93,6 +93,9 @@ class FallbackHTMLParser(html.parser.HTMLParser):
     return True
 
 
+MAX_FALLBACK_BYTES = 1024 * 1024  # 1 MB read cap to prevent excessive memory usage
+
+
 def run_single_audit(url: str, strategy: str = "mobile") -> dict:
   """Runs a Lighthouse audit for a single strategy (mobile or desktop)."""
   if not url.startswith("http"):
@@ -213,7 +216,7 @@ def run_single_audit(url: str, strategy: str = "mobile") -> dict:
           url, headers={"User-Agent": "Mozilla/5.0 (AppAuditor/2.0)"}
       )
       with urllib.request.urlopen(site_req, timeout=15, context=ctx) as resp:
-        html = resp.read().decode("utf-8", errors="ignore")
+        html = resp.read(MAX_FALLBACK_BYTES).decode("utf-8", errors="ignore")
         load_time = time.time() - start_time
     except Exception:
       html = ""
