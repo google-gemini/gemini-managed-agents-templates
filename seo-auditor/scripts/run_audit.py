@@ -15,7 +15,11 @@ import urllib.request
 
 
 class FallbackHTMLParser(html.parser.HTMLParser):
-  """Extracts core SEO tags from raw HTML without depending on attribute ordering."""
+  """Extracts core SEO tags and determines CSR shell vs SSR content from raw HTML."""
+
+  IGNORED_TAGS = {"script", "style", "noscript", "svg", "template", "head"}
+  ROOT_IDS = {"root", "app", "__next", "__nuxt"}
+  SEMANTIC_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6", "p", "main", "article", "section"}
 
   def __init__(self):
     super().__init__()
@@ -23,12 +27,21 @@ class FallbackHTMLParser(html.parser.HTMLParser):
     self.has_meta_desc = False
     self.has_og = False
     self.has_viewport = False
-    self.has_root_only = False
     self._in_title = False
+    self._tag_stack = []
+    self._inside_root = False
+    self._root_has_children = False
+    self._has_root_container = False
+    self._visible_text_len = 0
+    self._semantic_elements_count = 0
 
   def handle_starttag(self, tag, attrs):
     attr_dict = {k.lower(): (v or "") for k, v in attrs}
     tag = tag.lower()
+    self._tag_stack.append(tag)
+
+    if tag in self.SEMANTIC_TAGS:
+      self._semantic_elements_count += 1
 
     if tag == "title":
       self._in_title = True
@@ -45,16 +58,39 @@ class FallbackHTMLParser(html.parser.HTMLParser):
         self.has_viewport = True
     elif tag == "div":
       div_id = attr_dict.get("id", "").lower()
-      if div_id in ("root", "app", "__next"):
-        self.has_root_only = True
+      if div_id in self.ROOT_IDS:
+        self._has_root_container = True
+        self._inside_root = True
+      elif self._inside_root:
+        self._root_has_children = True
+    elif self._inside_root:
+      self._root_has_children = True
 
   def handle_data(self, data):
     if self._in_title and data.strip():
       self.has_title = True
+    if not any(t in self.IGNORED_TAGS for t in self._tag_stack):
+      text = data.strip()
+      if text:
+        self._visible_text_len += len(text)
 
   def handle_endtag(self, tag):
-    if tag.lower() == "title":
+    tag = tag.lower()
+    if self._tag_stack and self._tag_stack[-1] == tag:
+      self._tag_stack.pop()
+    if tag == "title":
       self._in_title = False
+    if tag == "div" and self._inside_root:
+      self._inside_root = False
+
+  @property
+  def has_root_only(self) -> bool:
+    """True ONLY if a root container exists AND has no children or negligible content."""
+    if not self._has_root_container:
+      return False
+    if self._root_has_children or self._visible_text_len > 250 or self._semantic_elements_count >= 2:
+      return False
+    return True
 
 
 def run_single_audit(url: str, strategy: str = "mobile") -> dict:
