@@ -20,3 +20,18 @@ An autonomous AI agent template that audits published web applications for loadi
    ```bash
    ./probers.sh
    ```
+
+## Model Selection
+
+By default, the agent runs on **Gemini 3.7 Flash** (`antigravity-preview-05-2026`) to deliver detailed reasoning, multi-platform meta tag configurations, and robust code remediations.
+
+For high-throughput or latency-sensitive workloads (~12–14s turnarounds), you can configure the underlying model to **Gemini 3.5 Flash-Lite** via `agent_config` in your interaction request:
+
+```json
+{
+  "agent_config": {
+    "type": "antigravity",
+    "model": "gemini-3.5-flash-lite"
+  }
+}
+```
