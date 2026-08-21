@@ -12,3 +12,7 @@ environment:
 examples:
   - title: "Audit Web App (Mobile & Desktop)"
     prompt: "Audit https://web.dev and produce a side-by-side Mobile vs Desktop Core Web Vitals and SEO performance report."
+  - title: "Accessibility & ARIA Audit"
+    prompt: "Audit https://ai.google.dev for accessibility and screen reader readiness, and provide code fixes for missing ARIA attributes, tap targets, and semantic structure."
+  - title: "Search Indexing & SEO Audit"
+    prompt: "Check search indexing status and on-page SEO readiness for https://deepmind.google including meta tags, OpenGraph preview, and crawlability."
