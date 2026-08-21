@@ -1,6 +1,6 @@
 # SEO Auditor Agent Template
 
-An autonomous AI agent template that audits published web applications for loading speed, mobile usability, Core Web Vitals, and search indexability using Lighthouse (via the PageSpeed Insights API) and Google Search.
+An AI agent template that audits published web applications for loading speed, mobile usability, Core Web Vitals, and search indexability using Google Lighthouse (via the PageSpeed Insights API) and Google Search.
 
 ## Features
 
@@ -16,7 +16,12 @@ An autonomous AI agent template that audits published web applications for loadi
    export GEMINI_API_KEY="your_api_key_here"
    ```
 
-2. Run the prober script:
+2. (Optional) Set `PAGESPEED_API_KEY` for higher Lighthouse quota (25,000 queries/day free on Google Cloud):
+   ```bash
+   export PAGESPEED_API_KEY="your_pagespeed_api_key_here"
+   ```
+
+3. Run the prober script:
    ```bash
    ./probers.sh
    ```
