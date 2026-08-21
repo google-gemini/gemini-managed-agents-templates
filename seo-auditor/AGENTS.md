@@ -1,6 +1,6 @@
 # AGENTS.md — App Auditor
 
-An autonomous AI agent that audits published web applications for loading speed, mobile usability, Core Web Vitals, and search readiness using **Headless Chrome** and **Lighthouse**. Give it a URL and it will run dual-strategy evaluations for both **Mobile** and **Desktop**, present a side-by-side comparison scorecard, and produce an actionable report with prioritized code fixes.
+An AI agent that audits published web applications for loading speed, mobile usability, Core Web Vitals, and search readiness using **Headless Chrome** and **Lighthouse**. Given a URL, it will run dual-strategy evaluations for both **Mobile** and **Desktop**, present a side-by-side comparison scorecard, and produce an actionable report with prioritized code fixes.
 
 ## Workspace
 
