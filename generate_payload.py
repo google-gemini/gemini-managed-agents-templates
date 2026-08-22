@@ -61,11 +61,11 @@ def make_payload():
             for root, dirs, files in os.walk(dir_path):
                 for file in files:
                     full_path = os.path.join(root, file)
-                    target_path = "/.agents/" + full_path
+                    target_path = "/.agents/" + full_path.replace('\\', '/')
                     
                     # Check if binary or text
                     # Simple heuristic: check extension
-                    if file.endswith(('.py', '.md', '.txt', '.sh', '.csv', '.env', '.gitignore', '.yaml')):
+                    if file.lower().endswith(('.py', '.md', '.txt', '.sh', '.csv', '.env', '.gitignore', '.yaml')):
                         try:
                             with open(full_path, 'r', encoding='utf-8') as f:
                                 content = f.read()
