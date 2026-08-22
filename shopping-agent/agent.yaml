@@ -1,0 +1,15 @@
+id: shopping-agent
+base_agent: antigravity-preview-05-2026
+description: "An AI shopping research agent that finds, compares, analyzes prices, and recommends products based on user requirements."
+tools:
+  - type: google_search
+environment:
+  type: "remote"
+  sources: []
+examples:
+  - title: "Noise-Cancelling Headphones"
+    prompt: "I need wireless noise-cancelling headphones under $200 with long battery life. Research and recommend the best options."
+  - title: "Laptop Comparison"
+    prompt: "Compare the MacBook Air M3 and the Dell XPS 13 for software development and general productivity."
+  - title: "Budget 4K TV Price Analysis"
+    prompt: "Find the best 55-inch 4K smart TVs under $400, analyze their prices, and tell me which is the best value for money."

@@ -9,6 +9,7 @@ This repository contains a collection of templates for building and deploying Ge
 - **Repo Maintainer**: Provide a GitHub repo URL, find top issues, fix them, and send Pull Requests.
 - **Document Processor**: A template for processing and analyzing documents.
 - **News Curator**: Personalized daily briefings on a Trigger schedule — sweeps Google News, Hacker News, and Medium for your topics, learns your taste across runs via the persistent environment.
+- **Shopping Agent**: Research products, compare specifications, analyze prices, and provide grounded product recommendations.
 
 ## Getting Started
 
