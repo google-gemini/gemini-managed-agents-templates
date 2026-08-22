@@ -21,7 +21,10 @@ fi
 if [ -n "$1" ]; then
   PROMPT="$1"
 else
-  PROMPT=$(python3 -c "import yaml; print(yaml.safe_load(open('agent.yaml'))['examples'][0]['prompt'])")
+  PROMPT=$(python3 -c "import yaml; print(yaml.safe_load(open('agent.yaml'))['examples'][0]['prompt'])" 2>/dev/null)
+  if [ -z "$PROMPT" ]; then
+    PROMPT="Find the best wireless noise-cancelling headphones under $200."
+  fi
 fi
 
 # Generate payload

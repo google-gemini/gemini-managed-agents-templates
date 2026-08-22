@@ -9,7 +9,10 @@ if (-not $env:GEMINI_API_KEY) {
 }
 
 if ([string]::IsNullOrWhiteSpace($Prompt)) {
-    $Prompt = python -c "import yaml; print(yaml.safe_load(open('agent.yaml'))['examples'][0]['prompt'])"
+    $Prompt = python -c "import yaml; print(yaml.safe_load(open('agent.yaml'))['examples'][0]['prompt'])" 2>$null
+    if ([string]::IsNullOrWhiteSpace($Prompt)) {
+        $Prompt = "Find the best wireless noise-cancelling headphones under $200."
+    }
 }
 
 Write-Host "Starting Shopping Agent with query: $Prompt" -ForegroundColor Cyan

@@ -42,9 +42,11 @@ def run():
         prompt = " ".join(sys.argv[1:])
     else:
         with open('agent.yaml', 'r') as f:
-            config = yaml.safe_load(f)
-            examples = config.get('examples', [])
-            prompt = examples[0]['prompt'] if examples else "Find the best wireless noise-cancelling headphones under $200."
+            config = yaml.safe_load(f) or {}
+            examples = config.get('examples') or []
+            prompt = examples[0].get('prompt') if examples and isinstance(examples[0], dict) else None
+            if not prompt:
+                prompt = "Find the best wireless noise-cancelling headphones under $200."
 
     print(f"\n🛒 Starting Shopping Agent...")
     print(f"📌 Query: {prompt}\n")
@@ -54,15 +56,19 @@ def run():
     # Temporary set sys.argv for make_payload
     orig_argv = sys.argv
     sys.argv = ['generate_payload.py', prompt]
-    
-    # We can capture payload using generate_payload logic
-    import io
-    from contextlib import redirect_stdout
-    f_out = io.StringIO()
-    with redirect_stdout(f_out):
-        generate_payload.make_payload()
-    payload_json = f_out.getvalue()
-    sys.argv = orig_argv
+    try:
+        # We can capture payload using generate_payload logic
+        import io
+        from contextlib import redirect_stdout
+        f_out = io.StringIO()
+        with redirect_stdout(f_out):
+            generate_payload.make_payload()
+        payload_json = f_out.getvalue()
+    except SystemExit as e:
+        print(f"\n❌ Error generating payload: generate_payload exited with code {e.code}", file=sys.stderr)
+        sys.exit(e.code)
+    finally:
+        sys.argv = orig_argv
 
     url = "https://generativelanguage.googleapis.com/v1beta/interactions"
     headers = {
@@ -76,7 +82,7 @@ def run():
     req = urllib.request.Request(url, data=payload_json.encode('utf-8'), headers=headers, method='POST')
 
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=600) as response:
             with open('prober_output.log', 'w', encoding='utf-8') as log_file:
                 for line in response:
                     decoded = line.decode('utf-8')
@@ -87,16 +93,19 @@ def run():
                         if data_str:
                             try:
                                 data = json.loads(data_str)
-                                # Extract content chunks if present
-                                delta = data.get('delta', {}) or data.get('content', {})
-                                if isinstance(delta, str):
-                                    print(delta, end='', flush=True)
-                                elif isinstance(delta, dict):
-                                    text = delta.get('text', '')
-                                    if text:
-                                        print(text, end='', flush=True)
+                                if isinstance(data, dict):
+                                    # Extract content chunks if present
+                                    delta = data.get('delta', {}) or data.get('content', {})
+                                    if isinstance(delta, str):
+                                        print(delta, end='', flush=True)
+                                    elif isinstance(delta, dict):
+                                        text = delta.get('text', '')
+                                        if text:
+                                            print(text, end='', flush=True)
+                                        else:
+                                            # Fallback print event summary
+                                            print(data_str)
                                 else:
-                                    # Fallback print event summary
                                     print(data_str)
                             except json.JSONDecodeError:
                                 print(data_str)
