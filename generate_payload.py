@@ -96,6 +96,7 @@ def make_payload():
                         })
 
     add_files('skills')
+    add_files('scripts')
     add_files('workspace')
 
     # Merge sources from environment.sources in agent.yaml (e.g. gcs, github)
