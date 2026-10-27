@@ -12,124 +12,176 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import json
-import yaml
 import base64
+import json
+import os
 import sys
 
-def make_payload():
-    if not os.path.exists('agent.yaml'):
-        print("Error: agent.yaml not found in current directory.", file=sys.stderr)
-        sys.exit(1)
-        
-    with open('agent.yaml', 'r') as f:
-        config = yaml.safe_load(f)
-    
-    agent_id = config.get('id')
-    base_agent = config.get('base_agent', 'antigravity-preview-09-2026')
-    tools = config.get('tools', [])
-    instructions = config.get('instructions')
-    
+import yaml
+
+
+def build_payload(config_dir=".", prompt=None, api_key=None):
+    agent_yaml_path = os.path.join(config_dir, "agent.yaml")
+    if not os.path.exists(agent_yaml_path):
+        raise FileNotFoundError(f"agent.yaml not found in {config_dir}.")
+
+    with open(agent_yaml_path, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f) or {}
+
+    base_agent = config.get("base_agent", "antigravity-preview-09-2026")
+    tools = config.get("tools", [])
+    instructions = config.get("instructions")
+
     sources = []
-    
+
     # Special credentials source
-    api_key = os.environ.get('GEMINI_API_KEY')
-    if not api_key:
-        print("Error: GEMINI_API_KEY environment variable not set.", file=sys.stderr)
-        sys.exit(1)
-        
+    key = api_key if api_key is not None else os.environ.get("GEMINI_API_KEY")
+    if not key:
+        raise ValueError("GEMINI_API_KEY environment variable not set.")
+
     sources.append({
         "type": "inline",
         "target": "/credentials/.env",
-        "content": f"GEMINI_API_KEY={api_key}\n"
+        "content": f"GEMINI_API_KEY={key}\n",
     })
-    
+
     # Read AGENTS.md
-    if os.path.exists('AGENTS.md'):
-        with open('AGENTS.md', 'r') as f:
+    agents_md_path = os.path.join(config_dir, "AGENTS.md")
+    if os.path.exists(agents_md_path):
+        with open(agents_md_path, "r", encoding="utf-8") as f:
             content = f.read()
         sources.append({
             "type": "inline",
             "target": "/.agents/AGENTS.md",
-            "content": content
+            "content": content,
         })
-        
+
+    # Read requirements.txt if present
+    req_path = os.path.join(config_dir, "requirements.txt")
+    if os.path.exists(req_path):
+        with open(req_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        sources.append({
+            "type": "inline",
+            "target": "/.agents/requirements.txt",
+            "content": content,
+        })
+
+    text_extensions = (
+        ".py",
+        ".md",
+        ".txt",
+        ".sh",
+        ".csv",
+        ".env",
+        ".gitignore",
+        ".yaml",
+        ".yml",
+        ".json",
+    )
+
     # Helper function to add files
-    def add_files(dir_path):
+    def add_files(dir_name):
+        dir_path = os.path.join(config_dir, dir_name)
         if os.path.exists(dir_path):
             for root, dirs, files in os.walk(dir_path):
                 for file in files:
                     full_path = os.path.join(root, file)
-                    target_path = "/.agents/" + full_path
-                    
-                    # Check if binary or text
-                    # Simple heuristic: check extension
-                    if file.endswith(('.py', '.md', '.txt', '.sh', '.csv', '.env', '.gitignore', '.yaml')):
+                    rel_path = os.path.relpath(full_path, config_dir).replace(os.sep, "/")
+                    target_path = "/.agents/" + rel_path
+
+                    if file.lower().endswith(text_extensions):
                         try:
-                            with open(full_path, 'r', encoding='utf-8') as f:
+                            with open(full_path, "r", encoding="utf-8") as f:
                                 content = f.read()
                             sources.append({
                                 "type": "inline",
                                 "target": target_path,
-                                "content": content
+                                "content": content,
                             })
                         except UnicodeDecodeError:
-                            # Fallback to base64 if utf-8 decode fails
-                            with open(full_path, 'rb') as f:
-                                content = base64.b64encode(f.read()).decode('utf-8')
+                            with open(full_path, "rb") as f:
+                                content = base64.b64encode(f.read()).decode("utf-8")
                             sources.append({
                                 "type": "inline",
                                 "target": target_path,
                                 "content": content,
-                                "encoding": "base64"
+                                "encoding": "base64",
                             })
                     else:
-                        # Assume binary, base64 encode
-                        with open(full_path, 'rb') as f:
-                            content = base64.b64encode(f.read()).decode('utf-8')
+                        with open(full_path, "rb") as f:
+                            content = base64.b64encode(f.read()).decode("utf-8")
                         sources.append({
                             "type": "inline",
                             "target": target_path,
                             "content": content,
-                            "encoding": "base64"
+                            "encoding": "base64",
                         })
 
-    add_files('skills')
-    add_files('scripts')
-    add_files('workspace')
+    add_files("skills")
+    add_files("scripts")
+    add_files("workspace")
+
+    # Seed fallback default workspace files if workspace copy is not present
+    default_interests = os.path.join(config_dir, "interests.default.json")
+    workspace_interests = os.path.join(config_dir, "workspace", "interests.json")
+    if os.path.exists(default_interests) and not os.path.exists(workspace_interests):
+        with open(default_interests, "r", encoding="utf-8") as f:
+            content = f.read()
+        sources.append({
+            "type": "inline",
+            "target": "/.agents/workspace/interests.json",
+            "content": content,
+        })
 
     # Merge sources from environment.sources in agent.yaml (e.g. gcs, github)
-    env = config.get('environment', {})
-    if isinstance(env, dict) and env.get('type') == 'remote':
-        for src in env.get('sources', []):
-            sources.append(src)
+    env = config.get("environment") or {}
+    if isinstance(env, dict) and env.get("type") == "remote":
+        sources.extend(env.get("sources") or [])
 
     # Also merge top-level sources from agent.yaml
-    for src in config.get('sources', []):
-        sources.append(src)
+    sources.extend(config.get("sources") or [])
 
-    prompt = sys.argv[1] if len(sys.argv) > 1 else "Hello"
-    
-    payload = {
-        "input": prompt,
-        "environment": {
-            "type": "remote",
-            "sources": sources
-        },
-        "tools": tools,
-        "stream": True
+    environment_payload = {
+        "type": "remote",
+        "sources": sources,
     }
-    
-    if base_agent.startswith('gemini-'):
+
+    # Forward network allowlist configuration if present
+    if isinstance(env, dict) and "network" in env:
+        environment_payload["network"] = env["network"]
+    elif "network" in config:
+        environment_payload["network"] = config["network"]
+
+    input_prompt = prompt if prompt is not None else "Hello"
+
+    payload = {
+        "input": input_prompt,
+        "environment": environment_payload,
+        "tools": tools,
+        "stream": True,
+    }
+
+    if base_agent.startswith("gemini-"):
         payload["model"] = base_agent
     else:
         payload["agent"] = base_agent
-    
+
     if instructions:
         payload["system_instruction"] = instructions
-        
-    print(json.dumps(payload, indent=2))
+
+    return payload
+
+
+def make_payload():
+    prompt = sys.argv[1] if len(sys.argv) > 1 else "Hello"
+    try:
+        payload = build_payload(config_dir=".", prompt=prompt)
+        print(json.dumps(payload, indent=2))
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     make_payload()
